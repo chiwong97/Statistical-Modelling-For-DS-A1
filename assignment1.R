@@ -1,0 +1,39 @@
+# Assignment 1 R Code
+# Chi Yin Wong
+# Student ID: 836872
+
+setwd("~/Google Drive/Unimelb/Masters/Statistical Modelling for Data Science/Assignment 1")
+
+domviolence = read.csv("domviolence.csv")
+dim(domviolence)
+summary(domviolence)
+
+# First step is to rewrite all the predictors as categorical variables i.e. use the factor function
+domviolence$age.f = factor(domviolence$age)
+domviolence$ms.f = factor(domviolence$ms)
+domviolence$mmo.f = factor(domviolence$mmo)
+domviolence$smok.f = factor(domviolence$smok)
+domviolence$alc.f = factor(domviolence$alc)
+domviolence$falc.f = factor(domviolence$falc)
+domviolence$educ.f = factor(domviolence$educ)
+domviolence$reg.f = factor(domviolence$reg)
+domviolence$dv.f = factor(domviolence$dv)
+
+model0 = glm(dv.f ~ age.f + ms.f + mmo.f + smok.f + alc.f + falc.f + educ.f + reg.f, family = binomial, data = domviolence)
+anova(model0, test = "Chi")
+# alc insignificant, remove alc
+model1 = glm(dv.f ~ age.f + ms.f + mmo.f + smok.f + falc.f + educ.f + reg.f, family = binomial, data = domviolence)
+anova(model1, test = "Chi")
+# all predictors significant, nothing to remove
+# now we replace factor(age) and factor(educ) with age and educ (treating them as numerical)
+model2 = glm(dv.f ~ age + ms.f + mmo.f + smok.f + falc.f + educ + reg.f, family = binomial, data = domviolence)
+anova(model2, model1, test = "Chi")
+# We see that the two models are not sigificantly different, thus we use model 2 as it is simpler in terms of model complexity
+# now we expand model 2 by including all the first order interaction terms 
+model3 = glm(dv.f ~ age + ms.f + mmo.f + smok.f + falc.f + educ + reg.f + ms.f:falc.f + ms.f:mmo.f + ms.f:smok.f + ms.f:falc.f + ms.f:reg.f + mmo.f:smok.f + mmo.f:reg.f + smok.f:falc.f + smok.f:reg.f + falc.f:reg.f, family = binomial, data = domviolence)
+summary(model3)
+# now we check to see if the model can be simplified
+model4 = step(model3)
+summary(model4)
+# check to see if model still has any insignificant variables
+anova(model4, test = "Chi")
